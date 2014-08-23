@@ -35,7 +35,7 @@ end
 
 
 ##Example code
-#mySpec = openData("../data/WASP14/WASP14-2009-06-14.hdf5")
+#mySpec = openData("data/WASP14-2009-06-14.hdf5")
 #println(mySpec.wls[1:10,1])
 #println(typeof(mySpec))
 #println(typeof(mySpec.fls))

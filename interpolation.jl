@@ -1,36 +1,28 @@
 #Interpolate spectra using Grid.jl
 
-#First, some tests to make sure I understand Grid.jl
-
 using Grid
+using spec_io
+using HDF5
 
-#So, for each pixel, we will have a (ntemp, nlogg, nZ) array
-NPIX = 262144
-#NPIX = 100
-Ntemp = 10
-Nlogg = 10
-NZ = 10
+#For example, 5800 - 6400, logg = 4.2 to 4.3 (for this specific run), and Z = -1.0 to -0.1. This would only require 540 spectra to be interpolated.
 
-#Define a two dimensional (Gaussian) function
-function Gaussian(w, x, y; z=1)
-    return exp(-0.5/z^2 * w.^2 .* x.^2 .* y.^2)
-end
+#Also, it just works on fractional grid indices, so supposedly adding in functionality to map index to value is up to me.
+#I want to design a interpolator function, wherby I give it temp, logg, Z, and it returns a spectrum.
 
-temps = linspace(2700, 4000, Ntemp)
-loggs = linspace(2.5, 6.0, Nlogg)
-Zs = linspace(-1.0, 1.0, NZ)
+fid = h5open("libraries/PHOENIX_F_julia_hires.hdf5", "r")
 
-#Evaluate this function over a 2D grid, but with z changing.
-arr = Array(Float64, (Ntemp, Nlogg, NZ, NPIX))
-for k in 1:NPIX
-    for j in 1:NZ
-        for i in 1:Nlogg
-            for h in 1:Ntemp
-                arr[h, i, j, k] = temps[h] + loggs[i] + Zs[j] + k #this is set from the raw library
-            end
-        end
-    end
-end
+(temps, loggs, Zs), grid = get_grid(fid)
+
+#Go through the setup once, for the first pixel.
+
+
+
+
+#Then go do the interpolation for all of the other pixels.
+
+
+
+#=
 
 println("loaded grid")
 
@@ -63,3 +55,7 @@ println(out_spec)
 #We'll have to try some testing here to see if it's appropriate to shortcut things by passing interp_invert! a sliced matrix.
 
 #Just do the inversion alone, then do it combined. Anyway, this entire code block isn't super important at the moment.
+
+=#
+
+close(fid)

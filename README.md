@@ -19,3 +19,7 @@ Ability to easily parallelize results across different spectra. For example, the
 There will have to be some caching of model results, and thought about how to properly design the sampler such that certain steps could be properly parallelized.
 
 Since the sparse matrix interface should be easier to interact with, we could also pare all of the region parameters into a single jump per order.
+
+Covariance update could update all regions and global at once, meaning cholfact only needs to happen once per rotation of gibbs. This would need to be a jump in about 30-60 parameters. 
+
+It seems like there could be some very smart speedups for sampling things in parallel.

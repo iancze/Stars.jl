@@ -1,8 +1,9 @@
-#covariance.jl
+module covariance
 
+export poisson_matrix, k_global_matrix, k_local_matrix
 #Routines to efficiently create and modify covariance matrices for spectra.
 
-const c = 3.e5 #km/s; speed of light
+const c = 2.99792458e5 #km/s; speed of light
 
 #Create the Poisson matrix from a sigma array
 function poisson_matrix(sigma::Vector{Float64})
@@ -30,7 +31,7 @@ function k_global_matrix(wl::Vector{Float64}, a::Float64, l::Float64)
         if offset == 0
             rs = zeros(Float64, N)
         else
-            rs = abs(wl[offset + 1:] - wl[1:end-offset]) ./wl[offset + 1:] * c
+            rs = abs(wl[offset + 1:end] - wl[1:end-offset]) ./wl[offset + 1:end] * c
         end
         if minimum(rs) >= r0
             #If even the smallest radius is larger than our truncation radius, 
@@ -52,7 +53,7 @@ function k_global_matrix(wl::Vector{Float64}, a::Float64, l::Float64)
     return spdiagm(diags, offsets)
 end
 
-function k_region(w0::Float64, w1::Float64, a::Float64, mu::Float64, sigma::Float64)
+function k_local(w0::Float64, w1::Float64, a::Float64, mu::Float64, sigma::Float64)
     rw0 = abs(w0 - mu)
     rw1 = abs(w1 - mu)
     r_tap = rw0 > rw1 ? rw0 : rw1 #choose the greater distance
@@ -63,6 +64,7 @@ function k_region(w0::Float64, w1::Float64, a::Float64, mu::Float64, sigma::Floa
     return taper * a^2 * exp(-((w0 - mu)^2 + (w1 - mu)^2)/(2 * sigma^2)) 
 end
 
+#This function is probably very fast but the look-up operation wl[i] could most likely be sped up
 function k_local_matrix(wl::Vector{Float64}, a::Float64, mu::Float64, sigma::Float64)
     N = length(wl)
     #determine the wl indices that are within 4 sigma of mu
@@ -74,7 +76,7 @@ function k_local_matrix(wl::Vector{Float64}, a::Float64, mu::Float64, sigma::Flo
     first_ind = 1
     last_ind = N
     while (r > r0)
-        r = abs(wl[i] - mu) #how far away are we from mu?
+        r = c * abs(wl[i] - mu)/mu #how far away are we from mu?
         first_ind = i
         i += 1
     end
@@ -83,7 +85,7 @@ function k_local_matrix(wl::Vector{Float64}, a::Float64, mu::Float64, sigma::Flo
     while (r < r0)
         last_ind = i 
         i += 1
-        r = abs(wl[i] - mu)
+        r = c * abs(wl[i] - mu)/mu
     end
     
     #println("Region stretches from indices $first_ind to $last_ind.")
@@ -109,13 +111,13 @@ function k_local_matrix(wl::Vector{Float64}, a::Float64, mu::Float64, sigma::Flo
             #Initialize lower triangle
             II[k] = i
             JJ[k] = j
-            SS[k] = k_region(wl[i], wl[j], a, mu, sigma)
+            SS[k] = k_local(wl[i], wl[j], a, mu, sigma)
             k += 1
             if i != j
                 #Initialize upper triangle while skipping the diagonal the second time
                 II[k] = j
                 JJ[k] = i
-                SS[k] = k_region(wl[j], wl[i], a, mu, sigma)
+                SS[k] = k_local(wl[j], wl[i], a, mu, sigma)
                 k += 1
             end
         end
@@ -126,31 +128,11 @@ end
 
 
 #Compute the Chi^2 using Cholesky factorization
-function chi2()
-    cholobj = cholfact(S);
-    println(logdet(cholobj))
-    out = cholobj \ ys;
-    println(dot(ys, out[:,1]))
-    
-end
-
-function nofact()
-    println(logdet(cholobj))
-    out = cholobj \ ys;
-    println(dot(ys, out[:,1]))
-end
-
-#An attempt to produce a simpler, more maintainable version of the above code. (possibly faster)
-#create the "local" covariance matrix using a Gaussian kernel
-function k_local_matrix_simple(wl::Vector{Float64}, a::Float64, mu::Float64, sigma::Float64)
-        
-    #Given mu, and sigma
-    r0 = 4.0 * sigma
-    #Find the range of indices that have abs(wl - mu) < r0
-    
-    #Now loop only over these indices
-
-
-    r_tap = rx0 > rx1 ? rx0 : rx1 #choose the greater distance
+#function chi2(C)
+#    cholobj = cholfact(S);
+#    println(logdet(cholobj))
+#    out = cholobj \ ys;
+#    println(dot(ys, out[:,1]))
+#end
 
 end

@@ -11,7 +11,7 @@ Load and return a "Dataset" object.
 module spec_io
 
 
-import HDF5 
+using HDF5 
 
 export DataSpectrum, openData
 export loadSpec
@@ -38,12 +38,12 @@ Example code:
     println(typeof(mySpec.fls))
 """
 function openData(filename::String)
-    fid = HDF5.h5open(filename, "r")
+    fid = h5open(filename, "r")
     #Julia is indexed by column, row
     wls = fid["wls"][:,:]
     fls = fid["fls"][:,:]
     sigmas = fid["sigmas"][:,:]
-    HDF5.close(fid)
+    close(fid)
     return DataSpectrum(wls, fls, sigmas)
 end
 
@@ -55,7 +55,7 @@ loadFlux
 
 Return a flux array from an HDF5 grid that has been "stuffed."
 """
-function loadSpec(temp, logg, Z, alpha, fid::HDF5.HDF5File)
+function loadSpec(temp, logg, Z, alpha, fid::HDF5File)
     #Convert the parameters to a lookup key using the format string. 
     #There really aren't too many ways to simplify this, since @sprintf is a macro  
     #It needs to see four arguments, since there are four format strings, so we can't use
@@ -73,9 +73,11 @@ get_grid
 Load all of the spectra stored in the HDF5 file into a large array in memory.
 
 """
-function get_grid(fid::HDF5.HDF5File)
+function get_grid(fid::HDF5File)
     #Go through all of the possible flux keys, and parse the parameter values 
     #from the header into unique lists.
+
+    wl = read(fid, "wl")
 
     alpha = 0.0 #Ignore alpha for now to simplify things
     flux = fid["flux"]
@@ -84,20 +86,20 @@ function get_grid(fid::HDF5.HDF5File)
     Zs = Any[]
     keys = Any[]
     for obj in flux
-        attrs = HDF5.attrs(obj)
-        push!(temps, HDF5.read(attrs, "temp"))
-        push!(loggs, HDF5.read(attrs, "logg"))
-        push!(Zs, HDF5.read(attrs, "Z"))
-        push!(keys, HDF5.name(obj))
+        attrs = attrs(obj)
+        push!(temps, read(attrs, "temp"))
+        push!(loggs, read(attrs, "logg"))
+        push!(Zs, read(attrs, "Z"))
+        push!(keys, name(obj))
     end
 
 
-    temps = unique(temps)
-    loggs = unique(loggs)
-    Zs = unique(Zs)
+    temps = sort!(unique(temps))
+    loggs = sort!(unique(loggs))
+    Zs = sort!(unique(Zs))
 
     dset = fid[keys[1]]
-    Npix = HDF5.size(dset)[1]
+    Npix = size(dset)[1]
 
     #Now, create a 4D array that is (Ntemp, Nlogg, NZ, Npix). 
     #The pixels are obviously the fastest changing dimension, but here they are 
@@ -116,7 +118,7 @@ function get_grid(fid::HDF5.HDF5File)
         
     #Return both the parameter keys to the grid and the grid itself
 
-    return (temps, loggs, Zs), grid
+    return (temps, loggs, Zs), wl, grid
 end
 
 

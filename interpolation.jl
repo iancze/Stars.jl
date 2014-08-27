@@ -7,6 +7,7 @@ using HDF5
 
 export rawgrid
 export interp_spec
+export create_grid
 
 #For example, 5800 - 6400, logg = 4.2 to 4.3 (for this specific run), and Z = -1.0 to -0.1. This would only require 540 spectra to be interpolated.
 
@@ -97,6 +98,7 @@ function insert_into_grid(temp, logg, Z, fid::HDF5File)
 
     #create format string
     key = @sprintf("flux/t%0.0fg%0.1fz%0.1fa%0.1f", temp, logg, Z, alpha)
+    println("Interpolating",key)
     fid[key] = spec
     dset = fid[key]
 

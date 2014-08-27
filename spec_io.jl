@@ -86,10 +86,10 @@ function get_grid(fid::HDF5File)
     Zs = Any[]
     keys = Any[]
     for obj in flux
-        attrs = attrs(obj)
-        push!(temps, read(attrs, "temp"))
-        push!(loggs, read(attrs, "logg"))
-        push!(Zs, read(attrs, "Z"))
+        attr = attrs(obj)
+        push!(temps, read(attr, "temp"))
+        push!(loggs, read(attr, "logg"))
+        push!(Zs, read(attr, "Z"))
         push!(keys, name(obj))
     end
 

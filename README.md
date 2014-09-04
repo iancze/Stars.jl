@@ -23,3 +23,5 @@ Since the sparse matrix interface should be easier to interact with, we could al
 Covariance update could update all regions and global at once, meaning cholfact only needs to happen once per rotation of gibbs. This would need to be a jump in about 30-60 parameters. 
 
 It seems like there could be some very smart speedups for sampling things in parallel.
+
+Parameters Type abstract type. Each variation of parameter combinations is a concrete type. In the guts of the code, we can have different functions that dispatch off of which parameters were actually given (ie, if no alpha, don't interpolate in that dimension), or if no logg, do a different thing.

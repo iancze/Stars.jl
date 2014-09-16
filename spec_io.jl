@@ -1,5 +1,5 @@
 """
-Read in spectral data. 
+Read in spectral data.
 
 Provides the DataSpectrum object as well as tools to read in synthetic spectra.
 
@@ -11,7 +11,7 @@ Load and return a "Dataset" object.
 module spec_io
 
 
-using HDF5 
+using HDF5
 
 export DataSpectrum, openData
 export loadSpec
@@ -56,8 +56,8 @@ loadFlux
 Return a flux array from an HDF5 grid that has been "stuffed."
 """
 function loadSpec(temp, logg, Z, alpha, fid::HDF5File)
-    #Convert the parameters to a lookup key using the format string. 
-    #There really aren't too many ways to simplify this, since @sprintf is a macro  
+    #Convert the parameters to a lookup key using the format string.
+    #There really aren't too many ways to simplify this, since @sprintf is a macro
     #It needs to see four arguments, since there are four format strings, so we can't use
     #splatting like vars and vars... to save typing.
     key = @sprintf("flux/t%0.0fg%0.1fz%0.1fa%0.1f", temp, logg, Z, alpha)
@@ -74,7 +74,7 @@ Load all of the spectra stored in the HDF5 file into a large array in memory.
 
 """
 function get_grid(fid::HDF5File)
-    #Go through all of the possible flux keys, and parse the parameter values 
+    #Go through all of the possible flux keys, and parse the parameter values
     #from the header into unique lists.
 
     wl = read(fid, "wl")
@@ -101,10 +101,10 @@ function get_grid(fid::HDF5File)
     dset = fid[keys[1]]
     Npix = size(dset)[1]
 
-    #Now, create a 4D array that is (Ntemp, Nlogg, NZ, Npix). 
-    #The pixels are obviously the fastest changing dimension, but here they are 
+    #Now, create a 4D array that is (Ntemp, Nlogg, NZ, Npix).
+    #The pixels are obviously the fastest changing dimension, but here they are
     #put in the spot reserved for the slowest changing index. This is because the
-    #interpolation routines for which this grid will be used will have pixel number 
+    #interpolation routines for which this grid will be used will have pixel number
     #as the slowest changing dimension.
     #Read all spectra into it
     grid = Array(Float64, (length(temps), length(loggs), length(Zs), Npix))
@@ -115,7 +115,7 @@ function get_grid(fid::HDF5File)
             end
         end
     end
-        
+
     #Return both the parameter keys to the grid and the grid itself
 
     return (temps, loggs, Zs), wl, grid

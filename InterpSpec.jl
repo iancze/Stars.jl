@@ -1,5 +1,6 @@
 #Interpolate spectra using Grid.jl
-module interpolation
+
+module InterpSpec
 
 using Grid
 using spec_io
@@ -9,13 +10,8 @@ export rawgrid
 export interp_spec
 export create_grid
 
-#For example, 5800 - 6400, logg = 4.2 to 4.3 (for this specific run), and Z = -1.0 to -0.1. This would only require 540 spectra to be interpolated.
-
-#Also, it just works on fractional grid indices, so supposedly adding in functionality to map index to value is up to me.
-#I want to design a interpolator function, wherby I give it temp, logg, Z, and it returns a spectrum.
-
-fid = h5open("libraries/PHOENIX_F_julia_hires.hdf5", "r")
-
+# Load the high resolution grid
+fid = h5open("libraries/PHOENIX_M.hdf5", "r")
 (temps, loggs, Zs), wl, grid = get_grid(fid)
 println("loaded grid")
 
@@ -89,7 +85,7 @@ function interp_spec(temp, logg, Z)
     return spec
 end
 
-# Function to take in parameters, interpolate the spectrum from the grid, 
+# Function to take in parameters, interpolate the spectrum from the grid,
 # and then insert it into an HDF5 file.
 function insert_into_grid(temp, logg, Z, fid::HDF5File)
     alpha = 0.0
@@ -118,7 +114,7 @@ function create_grid(filename, temps, loggs, Zs)
     # Add in the wl
     fid["wl"] = wl
 
-    # Iterate through all of the combinations of temp, logg, and Z, 
+    # Iterate through all of the combinations of temp, logg, and Z,
     # filling in the grid
     for temp in temps
         for logg in loggs

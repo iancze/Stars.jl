@@ -11,7 +11,9 @@ export interp_spec
 export create_grid
 
 # Load the high resolution grid
-fid = h5open("libraries/PHOENIX_M.hdf5", "r")
+fid = h5open("libraries/PHOENIX_M_julia_hires.hdf5", "r")
+#fid = h5open("libraries/PHOENIX_F_julia_hires.hdf5", "r")
+
 (temps, loggs, Zs), wl, grid = get_grid(fid)
 println("loaded grid")
 
@@ -61,10 +63,10 @@ function get_indices(temp, logg, Z)
     return Float64[tintp[temp], lintp[logg], zintp[Z]]
 end
 
-interp_invert!(grid, BCnil, InterpCubic, 1:3)   # solve for generalized interp. coefficients
+interp_invert!(grid, BCnil, InterpQuadratic, 1:3)   # solve for generalized interp. coefficients
 println("completed interp_invert!")
 
-ic = InterpGridCoefs(eltype(grid), InterpCubic, [sizes[1:3]...], [strds[1:3]...])    # prepare for interpolation on this grid
+ic = InterpGridCoefs(eltype(grid), InterpQuadratic, [sizes[1:3]...], [strds[1:3]...])    # prepare for interpolation on this grid
 println("InterpGridCoefs done")
 
 #Do cubic spline interpolation for a spectrum
